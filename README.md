@@ -54,7 +54,7 @@ Now run your new app, and you should see the video player appear and start playi
 
 Removing the close button, logo, and top bar background view:
 ```
-GMFPlayerOverlayView *playerOverlay = (GMFPlayerOverlayView *) [[self.videoPlayerViewController videoPlayerOverlayViewController] playerOverlayView];
+GMFPlayerOverlayView *playerOverlay = (GMFPlayerOverlayView *) [[videoPlayerViewController videoPlayerOverlayViewController] playerOverlayView];
     
 [playerOverlay.playerControlsView hideMinimizeButton];
 [playerOverlay.topBarView hideLogoView];
