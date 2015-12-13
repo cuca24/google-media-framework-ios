@@ -52,6 +52,19 @@ Then, add a ```viewDidAppear``` method:
 ```
 Now run your new app, and you should see the video player appear and start playing. (=Note: The close button will not work, as your application needs to know what to do when it is clicked. For a more in-depth example, see the demo app included with the framework.
 
+Removing the close button, logo, and top bar background view:
+```
+GMFPlayerOverlayView *playerOverlay = (GMFPlayerOverlayView *) [[self.videoPlayerViewController videoPlayerOverlayViewController] playerOverlayView];
+    
+[playerOverlay.playerControlsView hideMinimizeButton];
+[playerOverlay.topBarView hideLogoView];
+[playerOverlay.topBarView hideBackgroundView];
+
+```
+
+Note that this not completely removes views, but hides them. Other views are positioned accordingly using constraints 
+
+
 The demo application shows a more advanced implementation using a UINavigationController to select from different video content and ad tags.
 
 To try the demo app included with the Google Media Framework, clone the Google Media Framework Github repository, generate the xcworkspace file via ```pod install``` and open it.
