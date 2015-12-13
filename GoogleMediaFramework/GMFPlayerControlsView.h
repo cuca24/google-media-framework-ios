@@ -56,5 +56,6 @@
 
 - (void)applyControlTintColor:(UIColor *)color;
 
-@end
+- (void)hideMinimizeButton;
 
+@end

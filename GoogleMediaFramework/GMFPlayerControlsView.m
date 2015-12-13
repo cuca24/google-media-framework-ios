@@ -33,6 +33,10 @@ static const CGFloat kGMFBarPaddingX = 8;
   NSTimeInterval _mediaTime;
   NSTimeInterval _downloadedSeconds;
   BOOL _userScrubbing;
+  BOOL displayMinimizeButton;
+  BOOL showLogo;
+  BOOL showBackground;
+  NSMutableDictionary *controlsConstraints;
 
   __weak id<GMFPlayerControlsViewDelegate> _delegate;
 }
@@ -41,6 +45,8 @@ static const CGFloat kGMFBarPaddingX = 8;
 - (id)init {
   self = [super initWithFrame:CGRectZero];
   if (self) {
+
+    displayMinimizeButton = true;
     _backgroundView = [[UIImageView alloc] initWithImage:[GMFResources playerBarBackgroundImage]];
     [self addSubview:_backgroundView];
 
@@ -117,40 +123,46 @@ static const CGFloat kGMFBarPaddingX = 8;
                                                                  _scrubber,
                                                                  _totalSecondsLabel,
                                                                  _minimizeButton);
-  
+
+  if(controlsConstraints != nil){
+    [self removeConstraints:controlsConstraints];
+  }
+
   NSArray *constraints = [[NSArray alloc] init];
-  
+
   // Make the background view occupy the full height of the view.
   constraints = [constraints arrayByAddingObjectsFromArray:
                  [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_backgroundView]|"
                                                          options:NSLayoutFormatAlignAllBaseline
                                                          metrics:nil
                                                            views:viewsDictionary]];
-  
+
   // Make the background view occupy the full width of the view.
   constraints = [constraints arrayByAddingObjectsFromArray:
                  [NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_backgroundView]|"
                                                          options:NSLayoutFormatAlignAllBaseline
                                                          metrics:nil
                                                            views:viewsDictionary]];
-  
-  // Make the minimize button occupy the full height of the view.
-  constraints = [constraints arrayByAddingObjectsFromArray:
-                 [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_minimizeButton]|"
-                                                         options:NSLayoutFormatAlignAllBaseline
-                                                         metrics:nil
-                                                           views:viewsDictionary]];
-  
-  // Position the minimize button kGMFBarPaddingX from the right of the background view.
-  constraints = [constraints arrayByAddingObject:
-                 [NSLayoutConstraint constraintWithItem:_minimizeButton
-                                              attribute:NSLayoutAttributeRight
-                                              relatedBy:NSLayoutRelationEqual
-                                                 toItem:_backgroundView
-                                              attribute:NSLayoutAttributeRight
-                                             multiplier:1.0f
-                                               constant:-1*kGMFBarPaddingX]];
-  
+
+  if(displayMinimizeButton){
+      // Make the minimize button occupy the full height of the view.
+      constraints = [constraints arrayByAddingObjectsFromArray:
+                     [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_minimizeButton]|"
+                                                             options:NSLayoutFormatAlignAllBaseline
+                                                             metrics:nil
+                                                               views:viewsDictionary]];
+
+      // Position the minimize button kGMFBarPaddingX from the right of the background view.
+      constraints = [constraints arrayByAddingObject:
+                     [NSLayoutConstraint constraintWithItem:_minimizeButton
+                                                  attribute:NSLayoutAttributeRight
+                                                  relatedBy:NSLayoutRelationEqual
+                                                     toItem:_backgroundView
+                                                  attribute:NSLayoutAttributeRight
+                                                 multiplier:1.0f
+                                                   constant:-1*kGMFBarPaddingX]];
+  }
+
   // Make the total seconds label occupy the full height of the view.
   constraints = [constraints arrayByAddingObjectsFromArray:
                  [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_totalSecondsLabel]|"
@@ -158,23 +170,38 @@ static const CGFloat kGMFBarPaddingX = 8;
                                                          metrics:nil
                                                            views:viewsDictionary]];
 
-  // Position the total seconds label kGMFBarPaddingX from the left of the minimize button
-  constraints = [constraints arrayByAddingObject:
-                 [NSLayoutConstraint constraintWithItem:_totalSecondsLabel
-                                              attribute:NSLayoutAttributeRight
-                                              relatedBy:NSLayoutRelationEqual
-                                                 toItem:_minimizeButton
-                                              attribute:NSLayoutAttributeLeft
-                                             multiplier:1.0f
-                                               constant:-1*kGMFBarPaddingX]];
-  
+  if(displayMinimizeButton){
+      // Position the total seconds label kGMFBarPaddingX from the left of the minimize button
+      constraints = [constraints arrayByAddingObject:
+                     [NSLayoutConstraint constraintWithItem:_totalSecondsLabel
+                                                  attribute:NSLayoutAttributeRight
+                                                  relatedBy:NSLayoutRelationEqual
+                                                     toItem:_minimizeButton
+                                                  attribute:NSLayoutAttributeLeft
+                                                 multiplier:1.0f
+                                                   constant:-1*kGMFBarPaddingX]];
+  } else {
+    [_minimizeButton setHidden:YES];
+
+    // Position the total seconds label kGMFBarPaddingX from the right of the background view.
+    constraints = [constraints arrayByAddingObject:
+                   [NSLayoutConstraint constraintWithItem:_totalSecondsLabel
+                                                attribute:NSLayoutAttributeRight
+                                                relatedBy:NSLayoutRelationEqual
+                                                   toItem:_backgroundView
+                                                attribute:NSLayoutAttributeRight
+                                               multiplier:1.0f
+                                                 constant:-1*kGMFBarPaddingX]];
+  }
+
+
   // Make the scrubber occupy the full height of the view.
   constraints = [constraints arrayByAddingObjectsFromArray:
                  [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_scrubber]|"
                                                          options:NSLayoutFormatAlignAllBaseline
                                                          metrics:nil
                                                            views:viewsDictionary]];
-  
+
   // Position the scrubber kGMFBarPaddingX to the left of the total seconds label.
   constraints = [constraints arrayByAddingObject:
                  [NSLayoutConstraint constraintWithItem:_scrubber
@@ -184,7 +211,7 @@ static const CGFloat kGMFBarPaddingX = 8;
                                               attribute:NSLayoutAttributeLeft
                                              multiplier:1.0f
                                                constant:-8.0f]];
-  
+
   // Position the scrubber kGMFBarPaddingX to the right of the seconds played label.
   constraints = [constraints arrayByAddingObject:
                  [NSLayoutConstraint constraintWithItem:_scrubber
@@ -194,14 +221,14 @@ static const CGFloat kGMFBarPaddingX = 8;
                                               attribute:NSLayoutAttributeRight
                                              multiplier:1.0f
                                                constant:8.0f]];
-  
+
   // Make the seconds played label occupy the full height of the view
   constraints = [constraints arrayByAddingObjectsFromArray:
                  [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_secondsPlayedLabel]|"
                                                          options:NSLayoutFormatAlignAllBaseline
                                                          metrics:nil
                                                            views:viewsDictionary]];
-  
+
   // Position the seconds played label kGMFBarPaddingX to the right of the background view.
   constraints = [constraints arrayByAddingObject:
                  [NSLayoutConstraint constraintWithItem:_secondsPlayedLabel
@@ -211,7 +238,22 @@ static const CGFloat kGMFBarPaddingX = 8;
                                               attribute:NSLayoutAttributeLeft
                                              multiplier:1.0f
                                                constant:8.0f]];
+  controlsConstraints = constraints;
   [self addConstraints:constraints];
+}
+
+-(void) hideLogoView{
+
+}
+
+-(void) hideBackgroundView{
+
+}
+
+- (void)hideMinimizeButton{
+  NSLog(@"hideMinimizeButton");
+  displayMinimizeButton = false;
+  [self setupLayoutConstraints];
 }
 
 - (void)setTotalTime:(NSTimeInterval)totalTime {
@@ -314,14 +356,14 @@ static const CGFloat kGMFBarPaddingX = 8;
 }
 
 - (void)disableSeekbarInteraction {
-  
+
   // Hide the seek bar thumb by replacing it with a transparent image.
   // Note: We cannot simply set the image to be a zero-size image (ex. [[UIImage alloc] init])
   // because this will cause the seekbar's height, and therefore its layout, to change.
   UIImage *currentThumbImage = [_scrubber currentThumbImage];
   [_scrubber setThumbImage:[self transparentImageWithSize:currentThumbImage.size]
                   forState:UIControlStateNormal];
-  
+
   [_scrubber setUserInteractionEnabled:NO];
 }
 
@@ -333,7 +375,7 @@ static const CGFloat kGMFBarPaddingX = 8;
   UIRectFill(rect);
   UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
-  
+
   return image;
 }
 
@@ -358,4 +400,3 @@ static const CGFloat kGMFBarPaddingX = 8;
 }
 
 @end
-

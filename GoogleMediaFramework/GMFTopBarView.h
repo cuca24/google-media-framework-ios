@@ -34,4 +34,7 @@
 
 - (CGFloat)preferredHeight;
 
+-(void) hideLogoView;
+-(void) hideBackgroundView;
+
 @end

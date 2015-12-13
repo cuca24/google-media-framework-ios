@@ -21,11 +21,14 @@
   UILabel *_videoTitle;
   UIImageView *_logoImageView;
   NSMutableArray *_actionButtons;
+  NSMutableDictionary *tobBarConstraints;
+  BOOL showLogoView;
+  BOOL showBackgroundView;
 }
 
 - (id)init {
   self = [super initWithFrame:CGRectZero];
-  
+
   if (self) {
     _backgroundView = [[UIImageView alloc] initWithImage:[GMFResources
                                                           playerTitleBarBackgroundImage]];
@@ -34,55 +37,73 @@
     _videoTitle = [UILabel GMF_clearLabelForPlayerControls];
     [_videoTitle setFont:[UIFont fontWithName:_videoTitle.font.familyName size:16.0]];
     [self addSubview:_videoTitle];
-    
+
     _logoImageView = [[UIImageView alloc] init];
     _logoImageView.contentMode = UIViewContentModeScaleAspectFit;
     [self addSubview:_logoImageView];
-    
+
     _actionButtons = [[NSMutableArray alloc] init];
   }
-  
+
   [self setupLayoutConstraints];
   return self;
 }
 
 - (void)setupLayoutConstraints {
+
+  if(tobBarConstraints != nil){
+    [self removeConstraints:tobBarConstraints];
+  }
+
   [_videoTitle setTranslatesAutoresizingMaskIntoConstraints:NO];
   [_logoImageView setTranslatesAutoresizingMaskIntoConstraints:NO];
   [_backgroundView setTranslatesAutoresizingMaskIntoConstraints:NO];
-  
+
   NSDictionary *viewsDictionary = NSDictionaryOfVariableBindings(_backgroundView,
                                                                  _videoTitle,
                                                                  _logoImageView);
   NSDictionary *metrics = @{@"space": [NSNumber numberWithInt:4]};
-  
-  // Lay out the elements next to each other.
-  NSArray *constraints = [NSLayoutConstraint
-      constraintsWithVisualFormat:@"H:|-space-[_logoImageView]-[_videoTitle]"
-                          options:NSLayoutFormatAlignAllCenterY
-                          metrics:metrics
-                            views:viewsDictionary];
-  
+  NSArray *constraints;
+
+  if(showLogoView){
+    // Lay out the elements next to each other.
+    constraints = [NSLayoutConstraint
+        constraintsWithVisualFormat:@"H:|-space-[_logoImageView]-[_videoTitle]"
+                            options:NSLayoutFormatAlignAllCenterY
+                            metrics:metrics
+                              views:viewsDictionary];
+  } else {
+    [_logoImageView setHidden:true];
+
+    constraints = [NSLayoutConstraint
+        constraintsWithVisualFormat:@"H:|-space-[_videoTitle]"
+                            options:NSLayoutFormatAlignAllCenterY
+                            metrics:metrics
+                              views:viewsDictionary];
+  }
+
+
+
   // Make background fill the top bar.
   constraints = [constraints arrayByAddingObjectsFromArray:
                  [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_backgroundView]|"
                                                          options:0
                                                          metrics:nil
                                                            views:viewsDictionary]];
-  
+
   constraints = [constraints arrayByAddingObjectsFromArray:
                  [NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_backgroundView]|"
                                                          options:0
                                                          metrics:nil
                                                            views:viewsDictionary]];
-  
+
   // Make the video title take up the full height of the top bar.
   constraints = [constraints arrayByAddingObjectsFromArray:
                  [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_videoTitle]|"
                                                          options:NSLayoutFormatAlignAllCenterX
                                                          metrics:metrics
                                                            views:viewsDictionary]];
-  
+
   // Make the logo at most as wide the height of the bar.
   constraints = [constraints arrayByAddingObject:
                  [NSLayoutConstraint constraintWithItem:_logoImageView
@@ -92,6 +113,8 @@
                                               attribute:NSLayoutAttributeHeight
                                              multiplier:1.0f
                                                constant:0.0f]];
+
+  tobBarConstraints = constraints;
   [self addConstraints:constraints];
 }
 
@@ -99,7 +122,7 @@
                             name:(NSString *)name
                           target:(id)target
                         selector:(SEL)selector {
-  
+
   // Create the button with the given image, name (used as the accessibility label),
   // and target/selector for UIControlEventTouchUpInside.
   UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -110,13 +133,13 @@
   [button.imageView setContentMode:UIViewContentModeScaleAspectFit];
   [button setTranslatesAutoresizingMaskIntoConstraints:NO];
   [button setAccessibilityLabel:name];
-  
+
   [self addSubview:button];
   [_actionButtons addObject:button];
-  
+
   // Create the layout constraints.
   NSArray *constraints = [[NSArray alloc] init];
-  
+
   if ([_actionButtons count] == 1) {
     // If this is the first action button, position it in the right of the top bar.
     constraints = [constraints arrayByAddingObject:
@@ -140,7 +163,7 @@
                                                multiplier:1.0f
                                                  constant:-10.0f]];
   }
-  
+
   // Ensure that the button has the same height as the top bar.
   constraints = [constraints arrayByAddingObject:
                  [NSLayoutConstraint constraintWithItem:button
@@ -150,7 +173,7 @@
                                               attribute:NSLayoutAttributeHeight
                                              multiplier:1.0f
                                                constant:0.0f]];
-  
+
   // Ensure that the button's width is equal to the top bar's height.
   constraints = [constraints arrayByAddingObject:
                  [NSLayoutConstraint constraintWithItem:button
@@ -160,7 +183,7 @@
                                               attribute:NSLayoutAttributeHeight
                                              multiplier:1.0f
                                                constant:0.0f]];
- 
+
   // Ensure that the button is aligned at the bottom of the top bar.
   constraints = [constraints arrayByAddingObject:
                  [NSLayoutConstraint constraintWithItem:button
@@ -171,6 +194,16 @@
                                              multiplier:1.0f
                                                constant:0.0f]];
   [self addConstraints:constraints];
+}
+
+-(void) hideLogoView{
+  showLogoView = false;
+  [self setupLayoutConstraints];
+}
+
+-(void) hideBackgroundView{
+  showBackgroundView = false;
+  [_backgroundView setHidden:YES];
 }
 
 - (void)setLogoImage:(UIImage *)logoImage {
