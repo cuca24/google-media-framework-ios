@@ -1,6 +1,6 @@
 #Google Media Framework for iOS
 
-[![Build Status](https://travis-ci.org/googleads/google-media-framework-ios.png?branch=master)](https://travis-ci.org/googleads/google-media-framework-ios)
+Added ability to remove close button, top bar logo and background view
 
 ##Introduction
 The Google Media Framework (GMF) is a lightweight media player designed to make video playback and integration with the Google IMA SDK on iOS easier.
